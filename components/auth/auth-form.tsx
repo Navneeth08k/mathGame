@@ -60,11 +60,11 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "signup" }) {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="w-full max-w-md mx-auto p-6 bg-card rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-6 text-center">{mode === "login" ? "Login" : "Create an Account"}</h2>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded flex items-center gap-2">
+        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/30 text-destructive rounded flex items-center gap-2">
           <AlertCircle className="h-4 w-4" />
           <span>{error}</span>
         </div>
@@ -118,14 +118,14 @@ export function AuthForm({ mode = "login" }: { mode?: "login" | "signup" }) {
         {mode === "login" ? (
           <p>
             Don't have an account?{" "}
-            <a href="/signup" className="text-blue-600 hover:underline">
+            <a href="/signup" className="text-primary hover:underline">
               Sign up
             </a>
           </p>
         ) : (
           <p>
             Already have an account?{" "}
-            <a href="/login" className="text-blue-600 hover:underline">
+            <a href="/login" className="text-primary hover:underline">
               Sign in
             </a>
           </p>

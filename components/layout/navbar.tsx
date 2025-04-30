@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
 import type { Database } from "@/types/supabase"
 import { Menu, X } from "lucide-react"
 
@@ -26,11 +27,11 @@ export function Navbar({ user }: NavbarProps) {
   }
 
   return (
-    <header className="bg-white border-b">
+    <header className="bg-background border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
+            <Link href="/" className="text-2xl font-bold text-primary">
               Math Battle
             </Link>
           </div>
@@ -38,35 +39,38 @@ export function Navbar({ user }: NavbarProps) {
           <nav className="hidden md:flex items-center space-x-4">
             {user ? (
               <>
-                <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md">
+                <Link href="/dashboard" className="text-foreground hover:text-primary px-3 py-2 rounded-md">
                   Dashboard
                 </Link>
-                <Link href="/leaderboard" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md">
+                <Link href="/leaderboard" className="text-foreground hover:text-primary px-3 py-2 rounded-md">
                   Leaderboard
                 </Link>
-                <Link href="/profile" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md">
+                <Link href="/profile" className="text-foreground hover:text-primary px-3 py-2 rounded-md">
                   Profile
                 </Link>
+                <ThemeToggle />
                 <Button variant="outline" onClick={handleSignOut}>
                   Sign Out
                 </Button>
               </>
             ) : (
               <>
-                <Link href="/login" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md">
+                <Link href="/login" className="text-foreground hover:text-primary px-3 py-2 rounded-md">
                   Login
                 </Link>
-                <Link href="/signup" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md">
+                <Link href="/signup" className="text-foreground hover:text-primary px-3 py-2 rounded-md">
                   Sign Up
                 </Link>
+                <ThemeToggle />
               </>
             )}
           </nav>
 
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-700 hover:text-blue-600 focus:outline-none"
+              className="text-foreground hover:text-primary focus:outline-none"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -77,26 +81,26 @@ export function Navbar({ user }: NavbarProps) {
       {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-background">
             {user ? (
               <>
                 <Link
                   href="/dashboard"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-foreground hover:bg-accent"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/leaderboard"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-foreground hover:bg-accent"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Leaderboard
                 </Link>
                 <Link
                   href="/profile"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-foreground hover:bg-accent"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Profile
@@ -106,7 +110,7 @@ export function Navbar({ user }: NavbarProps) {
                     handleSignOut()
                     setIsMenuOpen(false)
                   }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+                  className="block w-full text-left px-3 py-2 rounded-md text-foreground hover:bg-accent"
                 >
                   Sign Out
                 </button>
@@ -115,14 +119,14 @@ export function Navbar({ user }: NavbarProps) {
               <>
                 <Link
                   href="/login"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-foreground hover:bg-accent"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Login
                 </Link>
                 <Link
                   href="/signup"
-                  className="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+                  className="block px-3 py-2 rounded-md text-foreground hover:bg-accent"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Sign Up

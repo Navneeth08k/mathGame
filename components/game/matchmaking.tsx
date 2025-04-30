@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import { Loader2, Users } from "lucide-react"
+import { MatchmakingQueue } from "@/lib/matchmaking"
 
 interface MatchmakingProps {
   userId: string
@@ -13,8 +13,9 @@ interface MatchmakingProps {
 export function Matchmaking({ userId }: MatchmakingProps) {
   const [isSearching, setIsSearching] = useState(false)
   const [searchTime, setSearchTime] = useState(0)
+  const [queueSize, setQueueSize] = useState(0)
+  const [matchmakingQueue, setMatchmakingQueue] = useState<MatchmakingQueue | null>(null)
   const router = useRouter()
-  const supabase = getSupabaseBrowserClient()
 
   useEffect(() => {
     let timer: NodeJS.Timeout
@@ -24,66 +25,30 @@ export function Matchmaking({ userId }: MatchmakingProps) {
         setSearchTime((prev) => prev + 1)
       }, 1000)
 
-      // Start matchmaking
-      findMatch()
+      // Create and join the matchmaking queue
+      const queue = new MatchmakingQueue(
+        userId,
+        (gameId) => {
+          // Redirect to the game when a match is found
+          router.push(`/game/${gameId}`)
+        },
+        (size) => {
+          // Update queue size
+          setQueueSize(size)
+        },
+      )
+
+      queue.join()
+      setMatchmakingQueue(queue)
     }
 
     return () => {
       if (timer) clearInterval(timer)
-    }
-  }, [isSearching])
-
-  const findMatch = async () => {
-    try {
-      // First, check for available games
-      const { data: availableGames, error: gamesError } = await supabase
-        .from("games")
-        .select("*")
-        .eq("status", "waiting")
-        .is("player2_id", null)
-        .neq("player1_id", userId)
-        .limit(1)
-
-      if (gamesError) throw gamesError
-
-      if (availableGames && availableGames.length > 0) {
-        // Join existing game
-        const gameId = availableGames[0].id
-
-        const { error: updateError } = await supabase
-          .from("games")
-          .update({
-            player2_id: userId,
-            status: "waiting",
-          })
-          .eq("id", gameId)
-
-        if (updateError) throw updateError
-
-        // Redirect to game
-        router.push(`/game/${gameId}`)
-        return
+      if (matchmakingQueue) {
+        matchmakingQueue.leave()
       }
-
-      // If no available games, create a new one
-      const { data: newGame, error: createError } = await supabase
-        .from("games")
-        .insert({
-          player1_id: userId,
-          status: "waiting",
-        })
-        .select()
-        .single()
-
-      if (createError) throw createError
-
-      // Redirect to new game
-      router.push(`/game/${newGame.id}`)
-    } catch (error) {
-      console.error("Error during matchmaking:", error)
-      setIsSearching(false)
     }
-  }
+  }, [isSearching, userId, router])
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
@@ -92,22 +57,37 @@ export function Matchmaking({ userId }: MatchmakingProps) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow-md">
+    <div className="flex flex-col items-center justify-center p-6 bg-card rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-6">Quick Match</h2>
 
       {isSearching ? (
         <>
-          <div className="flex items-center gap-3 mb-6">
-            <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+          <div className="flex items-center gap-3 mb-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <span className="text-lg">Finding opponent... {formatTime(searchTime)}</span>
           </div>
-          <Button variant="outline" onClick={() => setIsSearching(false)}>
+          <div className="flex items-center gap-2 mb-6 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            <span>
+              {queueSize} {queueSize === 1 ? "player" : "players"} in queue
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setIsSearching(false)
+              if (matchmakingQueue) {
+                matchmakingQueue.leave()
+                setMatchmakingQueue(null)
+              }
+            }}
+          >
             Cancel
           </Button>
         </>
       ) : (
         <>
-          <p className="text-gray-600 mb-6">Play a quick match against a random opponent</p>
+          <p className="text-muted-foreground mb-6">Play a quick match against a random opponent</p>
           <Button size="lg" onClick={() => setIsSearching(true)}>
             Find Match
           </Button>

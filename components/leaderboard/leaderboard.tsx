@@ -36,7 +36,7 @@ export function Leaderboard() {
 
   if (loading) {
     return (
-      <div className="p-6 bg-white rounded-lg shadow-md">
+      <div className="p-6 bg-card rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6">Leaderboard</h2>
         <div className="text-center py-8">Loading...</div>
       </div>
@@ -44,16 +44,16 @@ export function Leaderboard() {
   }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
+    <div className="p-6 bg-card rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-6">Leaderboard</h2>
 
       {players.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">No players found</div>
+        <div className="text-center py-8 text-muted-foreground">No players found</div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b border-border">
                 <th className="px-4 py-2 text-left">Rank</th>
                 <th className="px-4 py-2 text-left">Player</th>
                 <th className="px-4 py-2 text-right">Elo Rating</th>
@@ -63,7 +63,7 @@ export function Leaderboard() {
             </thead>
             <tbody>
               {players.map((player, index) => (
-                <tr key={player.id} className="border-b hover:bg-gray-50">
+                <tr key={player.id} className="border-b border-border hover:bg-accent/50">
                   <td className="px-4 py-3">
                     {index === 0 ? (
                       <div className="flex items-center">

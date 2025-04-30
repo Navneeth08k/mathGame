@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+import { Users } from "lucide-react"
 
 interface CreateGameProps {
   userId: string
@@ -37,9 +38,12 @@ export function CreateGame({ userId }: CreateGameProps) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 bg-white rounded-lg shadow-md">
+    <div className="flex flex-col items-center justify-center p-6 bg-card rounded-lg shadow-md">
+      <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center mb-4">
+        <Users className="h-6 w-6 text-accent-foreground" />
+      </div>
       <h2 className="text-2xl font-bold mb-6">Challenge a Friend</h2>
-      <p className="text-gray-600 mb-6">Create a game and share the link with a friend</p>
+      <p className="text-muted-foreground mb-6">Create a game and share the link with a friend</p>
       <Button size="lg" onClick={handleCreateGame} disabled={isCreating}>
         {isCreating ? "Creating..." : "Create Game"}
       </Button>

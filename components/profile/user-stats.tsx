@@ -70,7 +70,7 @@ export function UserStats({ userId }: UserStatsProps) {
 
   if (loading || !profile) {
     return (
-      <div className="p-6 bg-white rounded-lg shadow-md">
+      <div className="p-6 bg-card rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6">Your Stats</h2>
         <div className="text-center py-8">Loading...</div>
       </div>
@@ -78,25 +78,25 @@ export function UserStats({ userId }: UserStatsProps) {
   }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
+    <div className="p-6 bg-card rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-6">Your Stats</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="p-4 bg-blue-50 rounded-lg">
+        <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
-            <Award className="h-5 w-5 text-blue-600" />
-            <h3 className="font-semibold text-blue-800">Elo Rating</h3>
+            <Award className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <h3 className="font-semibold text-blue-800 dark:text-blue-300">Elo Rating</h3>
           </div>
           <p className="text-3xl font-bold">{profile.elo_rating}</p>
         </div>
 
-        <div className="p-4 bg-green-50 rounded-lg">
-          <h3 className="font-semibold text-green-800 mb-2">Games Played</h3>
+        <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-lg">
+          <h3 className="font-semibold text-green-800 dark:text-green-300 mb-2">Games Played</h3>
           <p className="text-3xl font-bold">{profile.games_played}</p>
         </div>
 
-        <div className="p-4 bg-purple-50 rounded-lg">
-          <h3 className="font-semibold text-purple-800 mb-2">Win Rate</h3>
+        <div className="p-4 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+          <h3 className="font-semibold text-purple-800 dark:text-purple-300 mb-2">Win Rate</h3>
           <p className="text-3xl font-bold">
             {profile.games_played > 0 ? `${Math.round((profile.games_won / profile.games_played) * 100)}%` : "N/A"}
           </p>
@@ -107,12 +107,12 @@ export function UserStats({ userId }: UserStatsProps) {
         <h3 className="text-xl font-semibold mb-4">Recent Games</h3>
 
         {recentGames.length === 0 ? (
-          <div className="text-center py-4 text-gray-500">No games played yet</div>
+          <div className="text-center py-4 text-muted-foreground">No games played yet</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
+                <tr className="border-b border-border">
                   <th className="px-4 py-2 text-left">Date</th>
                   <th className="px-4 py-2 text-left">Result</th>
                   <th className="px-4 py-2 text-right">Score</th>
@@ -126,15 +126,15 @@ export function UserStats({ userId }: UserStatsProps) {
                   const isWinner = game.winner_id === userId
 
                   return (
-                    <tr key={game.id} className="border-b hover:bg-gray-50">
+                    <tr key={game.id} className="border-b border-border hover:bg-accent/50">
                       <td className="px-4 py-3">{new Date(game.created_at).toLocaleDateString()}</td>
                       <td className="px-4 py-3">
                         {game.winner_id === null ? (
-                          <span className="text-gray-600">Draw</span>
+                          <span className="text-muted-foreground">Draw</span>
                         ) : isWinner ? (
-                          <span className="text-green-600 font-medium">Win</span>
+                          <span className="text-green-600 dark:text-green-400 font-medium">Win</span>
                         ) : (
-                          <span className="text-red-600 font-medium">Loss</span>
+                          <span className="text-red-600 dark:text-red-400 font-medium">Loss</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -153,12 +153,12 @@ export function UserStats({ userId }: UserStatsProps) {
         <h3 className="text-xl font-semibold mb-4">Elo History</h3>
 
         {eloHistory.length === 0 ? (
-          <div className="text-center py-4 text-gray-500">No rating changes yet</div>
+          <div className="text-center py-4 text-muted-foreground">No rating changes yet</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b">
+                <tr className="border-b border-border">
                   <th className="px-4 py-2 text-left">Date</th>
                   <th className="px-4 py-2 text-left">Old Rating</th>
                   <th className="px-4 py-2 text-left">New Rating</th>
@@ -170,7 +170,7 @@ export function UserStats({ userId }: UserStatsProps) {
                   const change = entry.new_rating - entry.old_rating
 
                   return (
-                    <tr key={entry.id} className="border-b hover:bg-gray-50">
+                    <tr key={entry.id} className="border-b border-border hover:bg-accent/50">
                       <td className="px-4 py-3">{new Date(entry.created_at).toLocaleDateString()}</td>
                       <td className="px-4 py-3">{entry.old_rating}</td>
                       <td className="px-4 py-3">{entry.new_rating}</td>
@@ -178,13 +178,13 @@ export function UserStats({ userId }: UserStatsProps) {
                         <div className="flex items-center justify-end">
                           {change > 0 ? (
                             <>
-                              <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
-                              <span className="text-green-600">+{change}</span>
+                              <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
+                              <span className="text-green-600 dark:text-green-400">+{change}</span>
                             </>
                           ) : change < 0 ? (
                             <>
-                              <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
-                              <span className="text-red-600">{change}</span>
+                              <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400 mr-1" />
+                              <span className="text-red-600 dark:text-red-400">{change}</span>
                             </>
                           ) : (
                             <span>0</span>
