@@ -1,188 +1,171 @@
-import { getSupabaseBrowserClient } from "@/lib/supabase/client"
-import type { RealtimeChannel } from "@supabase/supabase-js"
+// lib/matchmaking.ts
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
-// Matchmaking queue type
 export interface QueueEntry {
-  userId: string
-  joinedAt: string
-  elo?: number
+  userId: string;
+  joinedAt: string;
+  elo?: number;
 }
 
-// Matchmaking class to handle the queue
 export class MatchmakingQueue {
-  private channel: RealtimeChannel | null = null
-  private userId: string
-  private onMatchCallback: (gameId: string) => void
-  private onQueueUpdateCallback: (queueSize: number) => void
-  private matchCheckInterval: NodeJS.Timeout | null = null
-  private lastCheckTime = 0
+  private channel: RealtimeChannel | null = null;
+  private hasMatch = false;          // ← only broadcast once
+  private lastCheckTime = 0;
+  
+  constructor(
+    private userId: string,
+    private onMatch: (gameId: string) => void,
+    private onQueueUpdate: (size: number) => void
+  ) {}
 
-  constructor(userId: string, onMatch: (gameId: string) => void, onQueueUpdate: (queueSize: number) => void) {
-    this.userId = userId
-    this.onMatchCallback = onMatch
-    this.onQueueUpdateCallback = onQueueUpdate
-  }
-
-  // Join the matchmaking queue
   async join() {
-    const supabase = getSupabaseBrowserClient()
+    console.log("[Matchmaking] join() called for", this.userId);
+    const supabase = getSupabaseBrowserClient();
 
-    // Get user's Elo rating
-    const { data: profile } = await supabase.from("profiles").select("elo_rating").eq("id", this.userId).single()
+    // get this user's Elo
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("elo_rating")
+      .eq("id", this.userId)
+      .single();
 
-    // Subscribe to the matchmaking channel
+    // presence‐enabled channel
     this.channel = supabase
-      .channel("matchmaking")
+      .channel("matchmaking", {
+        config: { presence: { key: this.userId } },
+      })
       .on("presence", { event: "sync" }, () => {
-        // Get all users in the queue
-        const presenceState = this.channel?.presenceState() || {}
-        const queueSize = Object.keys(presenceState).length
+        const state = this.channel!.presenceState();
+        const queueSize = Object.keys(state).length;
+        console.log("[Matchmaking] Presence sync:", state, queueSize);
+        this.onQueueUpdate(queueSize);
 
-        this.onQueueUpdateCallback(queueSize)
-
-        // Try to find a match if there are at least 2 players
         if (queueSize >= 2) {
-          this.findMatch(presenceState)
+          this.findMatch(state);
         }
       })
-      .on("broadcast", { event: "match_found" }, (payload) => {
-        // Check if this user is part of the match
-        if (payload.payload.player1Id === this.userId || payload.payload.player2Id === this.userId) {
-          this.onMatchCallback(payload.payload.gameId)
-          this.leave()
+      .on("broadcast", { event: "match_found" }, (msg) => {
+        console.log("[Matchmaking] received match_found broadcast:", msg);
+        const { gameId, player1Id, player2Id } = msg.payload;
+        if (player1Id === this.userId || player2Id === this.userId) {
+          this.onMatch(gameId);
+          this.leave();
         }
       })
       .subscribe(async (status) => {
+        console.log("[Matchmaking] subscribe status:", status);
         if (status === "SUBSCRIBED") {
-          // Add user to the queue
-          await this.channel?.track({
+          console.log("[Matchmaking] tracking presence for", this.userId);
+          await this.channel!.track({
             userId: this.userId,
             joinedAt: new Date().toISOString(),
-            elo: profile?.elo_rating || 1000,
-          })
-
-          // Start periodic match checking
-          this.startMatchChecking()
+            elo: profile?.elo_rating ?? 1000,
+          });
+          this.startPolling();
         }
-      })
+      });
   }
 
-  // Leave the matchmaking queue
   leave() {
+    console.log("[Matchmaking] leave() called");
     if (this.channel) {
-      this.channel.unsubscribe()
-      this.channel = null
+      this.channel.unsubscribe();
+      this.channel = null;
     }
-
-    if (this.matchCheckInterval) {
-      clearInterval(this.matchCheckInterval)
-      this.matchCheckInterval = null
-    }
+    this.hasMatch = true; // prevent further findMatch calls
   }
 
-  // Start periodic match checking
-  private startMatchChecking() {
-    // Check for matches every 2 seconds
-    this.matchCheckInterval = setInterval(() => {
-      if (this.channel) {
-        const presenceState = this.channel.presenceState() || {}
-        const queueSize = Object.keys(presenceState).length
-
-        if (queueSize >= 2) {
-          this.findMatch(presenceState)
-        }
+  private startPolling() {
+    // fallback every 2s
+    setInterval(() => {
+      if (!this.channel || this.hasMatch) return;
+      const state = this.channel.presenceState();
+      if (Object.keys(state).length >= 2) {
+        this.findMatch(state);
       }
-    }, 2000)
+    }, 2000);
   }
 
-  // Find a match based on Elo and time in queue
-  private async findMatch(presenceState: Record<string, any>) {
-    // Avoid multiple simultaneous match checks
-    const now = Date.now()
-    if (now - this.lastCheckTime < 1000) return
-    this.lastCheckTime = now
-
-    const supabase = getSupabaseBrowserClient()
-
-    // Convert presence state to array of queue entries
-    const queueEntries: QueueEntry[] = []
-
-    Object.entries(presenceState).forEach(([key, value]) => {
-      if (Array.isArray(value) && value.length > 0) {
-        queueEntries.push(value[0] as QueueEntry)
-      }
-    })
-
-    // Sort by join time (oldest first)
-    queueEntries.sort((a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime())
-
-    // Find this user in the queue
-    const currentUser = queueEntries.find((entry) => entry.userId === this.userId)
-
-    if (!currentUser || queueEntries.length < 2) return
-
-    // If this is the oldest user in the queue, try to find a match
-    if (currentUser.userId === queueEntries[0].userId) {
-      // Find the best match based on Elo (excluding self)
-      const otherPlayers = queueEntries.filter((entry) => entry.userId !== this.userId)
-
-      if (otherPlayers.length === 0) return
-
-      // Sort other players by Elo similarity
-      otherPlayers.sort((a, b) => {
-        const aEloDiff = Math.abs((a.elo || 1000) - (currentUser.elo || 1000))
-        const bEloDiff = Math.abs((b.elo || 1000) - (currentUser.elo || 1000))
-        return aEloDiff - bEloDiff
+  private async findMatch(state: Record<string, any>) {
+    if (this.hasMatch) return;
+    const now = Date.now();
+    if (now - this.lastCheckTime < 1000) return;
+    this.lastCheckTime = now;
+  
+    console.log("[Matchmaking] findMatch triggered", state);
+  
+    // 1) build & sort entries
+    const entries: QueueEntry[] = Object.values(state)
+      .filter(Array.isArray)
+      .map((arr: any[]) => arr[0]);
+    console.log("[Matchmaking] entries:", entries.map(e => e.userId));
+    if (entries.length < 2) return;
+  
+    entries.sort(
+      (a, b) => new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime()
+    );
+  
+    const me = entries[0];
+    if (me.userId !== this.userId) {
+      console.log("[Matchmaking] skipping, not earliest:", this.userId);
+      return;
+    }
+    console.log("[Matchmaking] I am earliest:", this.userId);
+  
+    // 2) pick closest‐Elo opponent
+    const opponent = entries
+      .slice(1)
+      .sort(
+        (a, b) =>
+          Math.abs((a.elo ?? 1000) - (me.elo ?? 1000)) -
+          Math.abs((b.elo ?? 1000) - (me.elo ?? 1000))
+      )[0];
+    console.log("[Matchmaking] opponent:", opponent.userId);
+  
+    const supabase = getSupabaseBrowserClient();
+  
+    // 3) clear stale waiting games
+    await supabase
+      .from("games")
+      .delete()
+      .or(
+        `and(player1_id.eq.${me.userId},player2_id.eq.${opponent.userId}),and(player1_id.eq.${opponent.userId},player2_id.eq.${me.userId})`
+      )
+      .eq("status", "waiting");
+    console.log("[Matchmaking] cleared old waiting games");
+  
+    // 4) create new game
+    const { data: game, error: createErr } = await supabase
+      .from("games")
+      .insert({
+        player1_id: me.userId,
+        player2_id: opponent.userId,
+        status: "waiting",
       })
-
-      // Match with the closest Elo player
-      const opponent = otherPlayers[0]
-
-      try {
-        // Check if a game already exists between these players
-        const { data: existingGames } = await supabase
-          .from("games")
-          .select("id")
-          .or(
-            `and(player1_id.eq.${this.userId},player2_id.eq.${opponent.userId}),and(player1_id.eq.${opponent.userId},player2_id.eq.${this.userId})`,
-          )
-          .eq("status", "waiting")
-          .limit(1)
-
-        // If a game already exists, don't create a new one
-        if (existingGames && existingGames.length > 0) {
-          return
-        }
-
-        // Create a new game
-        const { data: game, error } = await supabase
-          .from("games")
-          .insert({
-            player1_id: this.userId,
-            player2_id: opponent.userId,
-            status: "waiting",
-          })
-          .select()
-          .single()
-
-        if (error || !game) {
-          console.error("Error creating game:", error)
-          return
-        }
-
-        // Broadcast the match to both players
-        this.channel?.send({
-          type: "broadcast",
-          event: "match_found",
-          payload: {
-            gameId: game.id,
-            player1Id: this.userId,
-            player2Id: opponent.userId,
-          },
-        })
-      } catch (error) {
-        console.error("Error in matchmaking:", error)
-      }
+      .select()
+      .single();
+    if (createErr || !game) {
+      console.error("[Matchmaking] error creating game:", createErr);
+      return;
     }
+    console.log("[Matchmaking] game created:", game.id);
+  
+    // 5) broadcast to both
+    this.hasMatch = true;
+    this.channel?.send({
+      type: "broadcast",
+      event: "match_found",
+      payload: { gameId: game.id, player1Id: me.userId, player2Id: opponent.userId },
+    });
+    console.log("[Matchmaking] broadcast sent:", game.id);
+  
+    // 6) manually redirect the initiator
+    console.log("[Matchmaking] redirecting self to game:", game.id);
+    this.onMatch(game.id);
+    this.leave();
   }
+  
+  
+  
 }
