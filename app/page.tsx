@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { getSupabaseServerClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { GradientTextDemo } from "@/components/gradient-text-demo"
 
 export default async function Home() {
   const supabase = getSupabaseServerClient()
@@ -44,8 +45,8 @@ export default async function Home() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-6">Challenge Your Math Skills in Real-Time Battles</h1>
-                <p className="text-lg text-muted-foreground mb-8">
+                <GradientTextDemo />
+                <p className="text-lg text-muted-foreground mb-8 mt-6">
                   Compete against friends or random opponents in fast-paced math challenges. Improve your skills, climb
                   the leaderboard, and become a Math Battle champion!
                 </p>
@@ -61,7 +62,7 @@ export default async function Home() {
               <div className="flex justify-center">
                 <div className="bg-accent p-8 rounded-lg shadow-lg max-w-md w-full">
                   <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold mb-2">Sample Problem</h2>
+                    <h2 className="text-2xl font-bold mb-2 text-foreground">Sample Problem</h2>
                     <p className="text-muted-foreground">How fast can you solve this?</p>
                   </div>
                   <div className="bg-card p-6 rounded-lg mb-6 text-center">
@@ -81,13 +82,13 @@ export default async function Home() {
 
         <section className="py-12 md:py-24">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
+            <h2 className="text-3xl font-bold text-center mb-12 text-foreground">How It Works</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="bg-card p-6 rounded-lg shadow-md">
                 <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-accent-foreground font-bold text-xl mb-4">
                   1
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Sign Up</h3>
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Sign Up</h3>
                 <p className="text-muted-foreground">
                   Create your account and set up your profile to start your math battle journey.
                 </p>
@@ -96,7 +97,7 @@ export default async function Home() {
                 <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-accent-foreground font-bold text-xl mb-4">
                   2
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Find Opponents</h3>
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Find Opponents</h3>
                 <p className="text-muted-foreground">
                   Use quick matchmaking to find random opponents or challenge your friends directly.
                 </p>
@@ -105,7 +106,7 @@ export default async function Home() {
                 <div className="w-12 h-12 bg-accent rounded-full flex items-center justify-center text-accent-foreground font-bold text-xl mb-4">
                   3
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Battle & Climb</h3>
+                <h3 className="text-xl font-semibold mb-2 text-foreground">Battle & Climb</h3>
                 <p className="text-muted-foreground">
                   Solve math problems faster than your opponent, win matches, and climb the leaderboard.
                 </p>

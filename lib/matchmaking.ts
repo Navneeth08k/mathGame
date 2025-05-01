@@ -139,6 +139,21 @@ export class MatchmakingQueue {
       const opponent = otherPlayers[0]
 
       try {
+        // Check if a game already exists between these players
+        const { data: existingGames } = await supabase
+          .from("games")
+          .select("id")
+          .or(
+            `and(player1_id.eq.${this.userId},player2_id.eq.${opponent.userId}),and(player1_id.eq.${opponent.userId},player2_id.eq.${this.userId})`,
+          )
+          .eq("status", "waiting")
+          .limit(1)
+
+        // If a game already exists, don't create a new one
+        if (existingGames && existingGames.length > 0) {
+          return
+        }
+
         // Create a new game
         const { data: game, error } = await supabase
           .from("games")

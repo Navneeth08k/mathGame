@@ -12,10 +12,6 @@ body {
   color: rgb(var(--foreground-rgb));
 }
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -83,6 +79,12 @@ body {
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
+
+    /* Gradient text colors */
+    --color-1: 240 80% 70%;
+    --color-2: 330 80% 70%;
+    --color-3: 180 80% 70%;
+    --color-4: 30 80% 70%;
   }
 }
 
@@ -92,5 +94,62 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Gradient text animations */
+@keyframes gradient-border {
+  0%,
+  100% {
+    transform: translateX(0%) translateY(0%);
+  }
+  25% {
+    transform: translateX(30%) translateY(20%);
+  }
+  50% {
+    transform: translateX(-20%) translateY(40%);
+  }
+  75% {
+    transform: translateX(-30%) translateY(-20%);
+  }
+}
+
+@keyframes gradient-1 {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes gradient-2 {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes gradient-3 {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes gradient-4 {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.75;
   }
 }

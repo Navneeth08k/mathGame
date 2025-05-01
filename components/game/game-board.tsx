@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import type { Database } from "@/types/supabase"
 import type { RealtimeChannel } from "@supabase/supabase-js"
-import { Clock, CheckCircle2, XCircle } from "lucide-react"
+import { Clock, CheckCircle2, XCircle, User } from "lucide-react"
+import Image from "next/image"
 
 type GameRound = Database["public"]["Tables"]["game_rounds"]["Row"]
 type Game = Database["public"]["Tables"]["games"]["Row"]
@@ -39,6 +40,7 @@ export function GameBoard({ gameId, userId, isPlayer1, opponent }: GameBoardProp
   const [playerAnswered, setPlayerAnswered] = useState(false)
   const [opponentAnswered, setOpponentAnswered] = useState(false)
   const [opponentAnswer, setOpponentAnswer] = useState<string | null>(null)
+  const [bothPlayersPresent, setBothPlayersPresent] = useState(false)
 
   const answerInputRef = useRef<HTMLInputElement>(null)
   const supabase = getSupabaseBrowserClient()
@@ -54,6 +56,7 @@ export function GameBoard({ gameId, userId, isPlayer1, opponent }: GameBoardProp
         const players = Object.keys(presenceState).length
 
         if (players === 2 && gameStatus === "waiting") {
+          setBothPlayersPresent(true)
           setGameStatus("starting")
           startCountdown()
         }
@@ -174,6 +177,11 @@ export function GameBoard({ gameId, userId, isPlayer1, opponent }: GameBoardProp
       if (gameError) throw gameError
 
       setGame(gameData)
+
+      // If both players are already in the game, set bothPlayersPresent to true
+      if (gameData.player1_id && gameData.player2_id) {
+        setBothPlayersPresent(true)
+      }
 
       if (gameData.status === "in_progress") {
         setGameStatus("in_progress")
@@ -407,20 +415,26 @@ export function GameBoard({ gameId, userId, isPlayer1, opponent }: GameBoardProp
     return (
       <div className="flex flex-col items-center justify-center h-96 p-6 bg-card rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4">Waiting for opponent...</h2>
-        <p className="text-muted-foreground mb-6">Share this game link with a friend to start playing</p>
-        <div className="flex items-center gap-2">
-          <Input value={`${window.location.origin}/game/join/${gameId}`} readOnly className="w-64" />
-          <Button
-            onClick={() => {
-              navigator.clipboard.writeText(`${window.location.origin}/game/join/${gameId}`)
-              setMessage("Link copied!")
-              setTimeout(() => setMessage(""), 2000)
-            }}
-          >
-            Copy
-          </Button>
-        </div>
-        {message && <p className="mt-4 text-green-600 dark:text-green-400">{message}</p>}
+        {bothPlayersPresent ? (
+          <p className="text-muted-foreground mb-6">Both players are here! Game will start soon.</p>
+        ) : (
+          <>
+            <p className="text-muted-foreground mb-6">Waiting for your opponent to join...</p>
+            <div className="flex items-center gap-2">
+              <Input value={`${window.location.origin}/game/join/${gameId}`} readOnly className="w-64" />
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/game/join/${gameId}`)
+                  setMessage("Link copied!")
+                  setTimeout(() => setMessage(""), 2000)
+                }}
+              >
+                Copy
+              </Button>
+            </div>
+            {message && <p className="mt-4 text-green-600 dark:text-green-400">{message}</p>}
+          </>
+        )}
       </div>
     )
   }
@@ -481,12 +495,35 @@ export function GameBoard({ gameId, userId, isPlayer1, opponent }: GameBoardProp
       </div>
 
       <div className="flex justify-between items-center mb-6">
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center">
+          <div className="relative w-10 h-10 rounded-full overflow-hidden mb-1 bg-muted">
+            {opponent?.avatar_url ? (
+              <Image src={opponent.avatar_url || "/placeholder.svg"} alt="Your avatar" fill className="object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User className="h-6 w-6 text-muted-foreground" />
+              </div>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">You</p>
           <p className="text-3xl font-bold">{isPlayer1 ? score.player1 : score.player2}</p>
         </div>
         <div className="px-4 py-2 bg-muted rounded-full text-sm">Round {roundNumber}</div>
-        <div className="text-center">
+        <div className="text-center flex flex-col items-center">
+          <div className="relative w-10 h-10 rounded-full overflow-hidden mb-1 bg-muted">
+            {opponent?.avatar_url ? (
+              <Image
+                src={opponent.avatar_url || "/placeholder.svg"}
+                alt={opponent.username}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <User className="h-6 w-6 text-muted-foreground" />
+              </div>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">{opponent?.username || "Opponent"}</p>
           <p className="text-3xl font-bold">{isPlayer1 ? score.player2 : score.player1}</p>
         </div>

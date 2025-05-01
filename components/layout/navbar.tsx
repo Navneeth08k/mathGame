@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import type { Database } from "@/types/supabase"
 import { Menu, X } from "lucide-react"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"]
 
@@ -24,6 +33,15 @@ export function Navbar({ user }: NavbarProps) {
     await supabase.auth.signOut()
     router.push("/login")
     router.refresh()
+  }
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2)
   }
 
   return (
@@ -45,13 +63,28 @@ export function Navbar({ user }: NavbarProps) {
                 <Link href="/leaderboard" className="text-foreground hover:text-primary px-3 py-2 rounded-md">
                   Leaderboard
                 </Link>
-                <Link href="/profile" className="text-foreground hover:text-primary px-3 py-2 rounded-md">
-                  Profile
-                </Link>
                 <ThemeToggle />
-                <Button variant="outline" onClick={handleSignOut}>
-                  Sign Out
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar>
+                        {user.avatar_url ? (
+                          <AvatarImage src={user.avatar_url || "/placeholder.svg"} alt={user.username} />
+                        ) : (
+                          <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
+                        )}
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{user.username}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">Profile</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>
@@ -68,6 +101,29 @@ export function Navbar({ user }: NavbarProps) {
 
           <div className="md:hidden flex items-center gap-2">
             <ThemeToggle />
+            {user && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar>
+                      {user.avatar_url ? (
+                        <AvatarImage src={user.avatar_url || "/placeholder.svg"} alt={user.username} />
+                      ) : (
+                        <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
+                      )}
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>{user.username}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-foreground hover:text-primary focus:outline-none"
