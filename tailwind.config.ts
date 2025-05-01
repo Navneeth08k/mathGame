@@ -1,20 +1,14 @@
-import type { Config } from "tailwindcss";
+import type { Config } from "tailwindcss"
 
 const config: Config = {
-  // Use the `class` strategy so Tailwind toggles styles when
-  // <html class="dark"> … </html> is present.
-  darkMode: "class",
-
-  // Paths that Tailwind should scan for class names
+  darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
     "./src/**/*.{ts,tsx}",
-    // catch-all for MDX or loose files
     "*.{js,ts,jsx,tsx,mdx}",
   ],
-
   theme: {
     container: {
       center: true,
@@ -23,16 +17,13 @@ const config: Config = {
         "2xl": "1400px",
       },
     },
-
     extend: {
-      // Colour tokens that map to CSS variables set in globals.css
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -62,13 +53,11 @@ const config: Config = {
           foreground: "hsl(var(--card-foreground))",
         },
       },
-
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
-
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -79,15 +68,13 @@ const config: Config = {
           to: { height: "0" },
         },
       },
-
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },
-
   plugins: [require("tailwindcss-animate")],
-};
+}
 
-export default config;
+export default config

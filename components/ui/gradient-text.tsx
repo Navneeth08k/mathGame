@@ -16,11 +16,8 @@ function GradientText({ className, children, as: Component = "span", ...props }:
 
   return (
     <MotionComponent
-     className={cn(
-         "relative inline-flex overflow-hidden text-transparent bg-clip-text",
-         "bg-gradient-to-r from-[hsl(var(--color-1))] via-[hsl(var(--color-2))] to-[hsl(var(--color-4))]",
-         className
-       )}
+      className={cn("relative inline-flex overflow-hidden bg-white dark:bg-black", className)}
+      {...props}
     >
       {children}
       <span className="pointer-events-none absolute inset-0 mix-blend-lighten dark:mix-blend-darken">

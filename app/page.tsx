@@ -23,7 +23,7 @@ export default async function Home() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link href="/" className="text-2xl font-bold text-primary">
-                ZetaMax
+                Math Battle
               </Link>
             </div>
 
@@ -119,7 +119,7 @@ export default async function Home() {
       <footer className="bg-background border-t border-border py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-muted-foreground text-sm">
-            <p>© {new Date().getFullYear()} ZetaMax. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Math Battle. All rights reserved.</p>
           </div>
         </div>
       </footer>
