@@ -22,7 +22,7 @@ export default async function DashboardPage() {
     <div className="flex flex-col min-h-screen">
       <Navbar user={profile} />
 
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="flex-1 container mx-auto px-4 py-8 text-foreground">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">

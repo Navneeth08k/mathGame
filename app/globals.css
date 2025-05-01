@@ -11,6 +11,10 @@
   --color-2: 330 80% 70%;
   --color-3: 180 80% 70%;
   --color-4: 30 80% 70%;
+
+  --success: 138 76% 90%;
+  --success-foreground: 160 60% 30%;
+  --success-border: 138 44% 65%;
 }
 
 body {
@@ -90,6 +94,10 @@ body {
     --color-2: 330 80% 70%;
     --color-3: 180 80% 70%;
     --color-4: 30 80% 70%;
+
+    --success: 160 30% 20%;
+    --success-foreground: 138 60% 70%;
+    --success-border: 138 30% 40%;
   }
 }
 

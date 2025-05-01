@@ -45,7 +45,7 @@ export function Leaderboard() {
   }
 
   return (
-    <div className="p-6 bg-card rounded-lg shadow-md">
+    <div className="p-6 bg-card rounded-lg shadow-md text-foreground">
       <h2 className="text-2xl font-bold mb-6">Leaderboard</h2>
 
       {players.length === 0 ? (

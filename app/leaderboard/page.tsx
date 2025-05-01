@@ -17,10 +17,10 @@ export default async function LeaderboardPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen text-foreground">
       <Navbar user={profile} />
 
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="flex-1 container mx-auto px-4 py-8 text-foreground">
         <h1 className="text-3xl font-bold mb-8">Leaderboard</h1>
 
         <Leaderboard />
