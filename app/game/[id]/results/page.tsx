@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/navbar"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { calculateElo } from "@/lib/utils"
+import { Trophy, Medal } from "lucide-react"
 
 export default async function GameResultsPage({ params }: { params: { id: string } }) {
   const supabase = getSupabaseServerClient()
@@ -78,24 +79,27 @@ export default async function GameResultsPage({ params }: { params: { id: string
 
   const eloChange = userEloHistory ? userEloHistory.new_rating - userEloHistory.old_rating : 0
 
+  const isWinner = game.winner_id === session.user.id
+  const isDraw = game.player1_score === game.player2_score
+
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar user={profile} />
 
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <div className="max-w-2xl mx-auto p-6 bg-card rounded-lg shadow-md">
           <h1 className="text-3xl font-bold mb-6 text-center">Game Results</h1>
 
           <div className="flex justify-between items-center mb-8">
             <div className="text-center">
               <p className="text-lg font-semibold">{updatedProfile?.username || "You"}</p>
               <p className="text-3xl font-bold">{isPlayer1 ? game.player1_score : game.player2_score}</p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Elo: {updatedProfile?.elo_rating}
                 {eloChange > 0 ? (
-                  <span className="text-green-600 ml-1">+{eloChange}</span>
+                  <span className="text-green-600 dark:text-green-400 ml-1">+{eloChange}</span>
                 ) : eloChange < 0 ? (
-                  <span className="text-red-600 ml-1">{eloChange}</span>
+                  <span className="text-red-600 dark:text-red-400 ml-1">{eloChange}</span>
                 ) : null}
               </p>
             </div>
@@ -107,18 +111,27 @@ export default async function GameResultsPage({ params }: { params: { id: string
             <div className="text-center">
               <p className="text-lg font-semibold">{updatedOpponent?.username || "Opponent"}</p>
               <p className="text-3xl font-bold">{isPlayer1 ? game.player2_score : game.player1_score}</p>
-              <p className="text-sm text-gray-600">Elo: {updatedOpponent?.elo_rating}</p>
+              <p className="text-sm text-muted-foreground">Elo: {updatedOpponent?.elo_rating}</p>
             </div>
           </div>
 
           <div className="text-center mb-8">
-            <p className="text-xl font-bold">
-              {game.player1_score === game.player2_score
-                ? "It's a tie!"
-                : game.winner_id === session.user.id
-                  ? "You won!"
-                  : "You lost!"}
-            </p>
+            {isDraw ? (
+              <div className="flex flex-col items-center">
+                <Medal className="h-12 w-12 text-yellow-500 mb-2" />
+                <p className="text-xl font-bold">It's a tie!</p>
+              </div>
+            ) : isWinner ? (
+              <div className="flex flex-col items-center">
+                <Trophy className="h-12 w-12 text-yellow-500 mb-2" />
+                <p className="text-xl font-bold text-green-600 dark:text-green-400">You won!</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center">
+                <p className="text-xl font-bold text-red-600 dark:text-red-400">You lost!</p>
+                <p className="text-sm text-muted-foreground mt-1">Better luck next time!</p>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-center gap-4">

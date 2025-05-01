@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import type { Database } from "@/types/supabase"
 import type { RealtimeChannel } from "@supabase/supabase-js"
+import { Clock, CheckCircle2, XCircle } from "lucide-react"
 
 type GameRound = Database["public"]["Tables"]["game_rounds"]["Row"]
 type Game = Database["public"]["Tables"]["games"]["Row"]
@@ -419,7 +420,7 @@ export function GameBoard({ gameId, userId, isPlayer1, opponent }: GameBoardProp
             Copy
           </Button>
         </div>
-        {message && <p className="mt-4 text-green-600">{message}</p>}
+        {message && <p className="mt-4 text-green-600 dark:text-green-400">{message}</p>}
       </div>
     )
   }
@@ -470,9 +471,12 @@ export function GameBoard({ gameId, userId, isPlayer1, opponent }: GameBoardProp
           <h2 className="text-xl font-bold">Math Battle</h2>
           <p className="text-sm text-muted-foreground">vs. {opponent?.username || "Opponent"}</p>
         </div>
-        <div className="text-right">
-          <div className="text-sm text-muted-foreground">Time Left</div>
-          <div className="text-xl font-bold text-destructive">{formatTime(timeLeft)}</div>
+        <div className="text-right flex items-center gap-2">
+          <Clock className="h-5 w-5 text-destructive" />
+          <div>
+            <div className="text-sm text-muted-foreground">Time Left</div>
+            <div className="text-xl font-bold text-destructive">{formatTime(timeLeft)}</div>
+          </div>
         </div>
       </div>
 
@@ -496,10 +500,13 @@ export function GameBoard({ gameId, userId, isPlayer1, opponent }: GameBoardProp
         <div className="p-4 bg-muted rounded-lg">
           <p className="text-sm font-medium mb-2">Your Answer</p>
           {playerAnswered ? (
-            <div
-              className={`text-xl font-bold ${answer === currentRound?.correct_answer ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-            >
-              {answer} {answer === currentRound?.correct_answer ? "✓" : "✗"}
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold">{answer}</span>
+              {answer === currentRound?.correct_answer ? (
+                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              )}
             </div>
           ) : (
             <form onSubmit={handleAnswerSubmit} className="flex gap-2">
@@ -523,10 +530,13 @@ export function GameBoard({ gameId, userId, isPlayer1, opponent }: GameBoardProp
         <div className="p-4 bg-muted rounded-lg">
           <p className="text-sm font-medium mb-2">{opponent?.username || "Opponent"}'s Answer</p>
           {opponentAnswered ? (
-            <div
-              className={`text-xl font-bold ${opponentAnswer === currentRound?.correct_answer ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-            >
-              {opponentAnswer} {opponentAnswer === currentRound?.correct_answer ? "✓" : "✗"}
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold">{opponentAnswer}</span>
+              {opponentAnswer === currentRound?.correct_answer ? (
+                <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+              ) : (
+                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              )}
             </div>
           ) : (
             <div className="text-muted-foreground italic">Waiting for opponent...</div>

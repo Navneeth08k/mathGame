@@ -82,22 +82,32 @@ export function UserStats({ userId }: UserStatsProps) {
       <h2 className="text-2xl font-bold mb-6">Your Stats</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+        <div className="p-4 bg-blue-100/80 dark:bg-blue-900/20 rounded-lg">
           <div className="flex items-center gap-2 mb-2">
             <Award className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             <h3 className="font-semibold text-blue-800 dark:text-blue-300">Elo Rating</h3>
           </div>
-          <p className="text-3xl font-bold">{profile.elo_rating}</p>
+          <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{profile.elo_rating}</p>
         </div>
 
-        <div className="p-4 bg-green-100 dark:bg-green-900/30 rounded-lg">
-          <h3 className="font-semibold text-green-800 dark:text-green-300 mb-2">Games Played</h3>
-          <p className="text-3xl font-bold">{profile.games_played}</p>
+        <div className="p-4 bg-green-100/80 dark:bg-green-900/20 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-5 w-5 rounded-full bg-green-600 dark:bg-green-400 flex items-center justify-center text-white text-xs font-bold">
+              #
+            </div>
+            <h3 className="font-semibold text-green-800 dark:text-green-300">Games Played</h3>
+          </div>
+          <p className="text-3xl font-bold text-green-900 dark:text-green-100">{profile.games_played}</p>
         </div>
 
-        <div className="p-4 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-          <h3 className="font-semibold text-purple-800 dark:text-purple-300 mb-2">Win Rate</h3>
-          <p className="text-3xl font-bold">
+        <div className="p-4 bg-purple-100/80 dark:bg-purple-900/20 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="h-5 w-5 rounded-full bg-purple-600 dark:bg-purple-400 flex items-center justify-center text-white text-xs font-bold">
+              %
+            </div>
+            <h3 className="font-semibold text-purple-800 dark:text-purple-300">Win Rate</h3>
+          </div>
+          <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">
             {profile.games_played > 0 ? `${Math.round((profile.games_won / profile.games_played) * 100)}%` : "N/A"}
           </p>
         </div>

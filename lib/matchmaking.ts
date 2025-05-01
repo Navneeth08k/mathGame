@@ -14,6 +14,8 @@ export class MatchmakingQueue {
   private userId: string
   private onMatchCallback: (gameId: string) => void
   private onQueueUpdateCallback: (queueSize: number) => void
+  private matchCheckInterval: NodeJS.Timeout | null = null
+  private lastCheckTime = 0
 
   constructor(userId: string, onMatch: (gameId: string) => void, onQueueUpdate: (queueSize: number) => void) {
     this.userId = userId
@@ -58,6 +60,9 @@ export class MatchmakingQueue {
             joinedAt: new Date().toISOString(),
             elo: profile?.elo_rating || 1000,
           })
+
+          // Start periodic match checking
+          this.startMatchChecking()
         }
       })
   }
@@ -68,10 +73,35 @@ export class MatchmakingQueue {
       this.channel.unsubscribe()
       this.channel = null
     }
+
+    if (this.matchCheckInterval) {
+      clearInterval(this.matchCheckInterval)
+      this.matchCheckInterval = null
+    }
+  }
+
+  // Start periodic match checking
+  private startMatchChecking() {
+    // Check for matches every 2 seconds
+    this.matchCheckInterval = setInterval(() => {
+      if (this.channel) {
+        const presenceState = this.channel.presenceState() || {}
+        const queueSize = Object.keys(presenceState).length
+
+        if (queueSize >= 2) {
+          this.findMatch(presenceState)
+        }
+      }
+    }, 2000)
   }
 
   // Find a match based on Elo and time in queue
   private async findMatch(presenceState: Record<string, any>) {
+    // Avoid multiple simultaneous match checks
+    const now = Date.now()
+    if (now - this.lastCheckTime < 1000) return
+    this.lastCheckTime = now
+
     const supabase = getSupabaseBrowserClient()
 
     // Convert presence state to array of queue entries
@@ -98,35 +128,46 @@ export class MatchmakingQueue {
 
       if (otherPlayers.length === 0) return
 
-      // For simplicity, match with the next player in the queue
+      // Sort other players by Elo similarity
+      otherPlayers.sort((a, b) => {
+        const aEloDiff = Math.abs((a.elo || 1000) - (currentUser.elo || 1000))
+        const bEloDiff = Math.abs((b.elo || 1000) - (currentUser.elo || 1000))
+        return aEloDiff - bEloDiff
+      })
+
+      // Match with the closest Elo player
       const opponent = otherPlayers[0]
 
-      // Create a new game
-      const { data: game, error } = await supabase
-        .from("games")
-        .insert({
-          player1_id: this.userId,
-          player2_id: opponent.userId,
-          status: "waiting",
+      try {
+        // Create a new game
+        const { data: game, error } = await supabase
+          .from("games")
+          .insert({
+            player1_id: this.userId,
+            player2_id: opponent.userId,
+            status: "waiting",
+          })
+          .select()
+          .single()
+
+        if (error || !game) {
+          console.error("Error creating game:", error)
+          return
+        }
+
+        // Broadcast the match to both players
+        this.channel?.send({
+          type: "broadcast",
+          event: "match_found",
+          payload: {
+            gameId: game.id,
+            player1Id: this.userId,
+            player2Id: opponent.userId,
+          },
         })
-        .select()
-        .single()
-
-      if (error || !game) {
-        console.error("Error creating game:", error)
-        return
+      } catch (error) {
+        console.error("Error in matchmaking:", error)
       }
-
-      // Broadcast the match to both players
-      this.channel?.send({
-        type: "broadcast",
-        event: "match_found",
-        payload: {
-          gameId: game.id,
-          player1Id: this.userId,
-          player2Id: opponent.userId,
-        },
-      })
     }
   }
 }
